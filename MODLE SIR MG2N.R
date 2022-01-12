@@ -681,5 +681,20 @@ F6 <- grid.arrange(gA,gB,gC,p1)
 
 
 
+class <- c("Enforcer","Sniper","Clockwork"
+           ,"Mechanic","Syndicate","Bodyward"
+           ,"Scrap","Innovator","Academy","Protector",
+           "Twinshot","Mercenary","Bruiser",
+           "Mutant","Yordle","Arcanist","Chemtech","Assasin","Enchanter",
+           "Challenger","Imperial","Sister","Scholar","Colossus","Socialite",
+           "Transformer","Gluton","Cuddly")
 
+classFR <- c("Justicier","Sniper","Mécanique"
+           ,"Mechanic","Pègre","Garde du corps"
+           ,"Ferrailleur","Innovateur","Étudiant","Protecteur",
+           "Répétireur","Mercenaire","Combattant",
+           "Mutant","Yordle","Arcanist","Techno-Chimiste","Assasin","Enchanter",
+           "Challenger","Imperial","Soeur","Érudit","Colosse","Vedette",
+           "Transformeur","Gluton","Câlin")
 
+sort(classFR)
