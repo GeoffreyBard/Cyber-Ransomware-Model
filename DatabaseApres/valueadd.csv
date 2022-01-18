@@ -1,0 +1,112 @@
+Value,In,Codein,Codeout,Out
+225517.72,Mining and quarrying,D05T09,D05T09,Mining and quarrying
+14856.924,Manufacturing,D10T33,D05T09,Mining and quarrying
+4915.213,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D05T09,Mining and quarrying
+1408.089,Construction,D41T43,D05T09,Mining and quarrying
+8721.245,Wholesale and retail trade; repair of motor vehicles,D45T47,D05T09,Mining and quarrying
+6002.442,Transportation and storage,D49T53,D05T09,Mining and quarrying
+807.808,Accommodation and food services,D55T56,D05T09,Mining and quarrying
+1822.947,Information and communication,D58T63,D05T09,Mining and quarrying
+1756.259,Real estate activities,D68,D05T09,Mining and quarrying
+8819.14,Other business sector services,D69T82,D05T09,Mining and quarrying
+1026266.991,Mining and quarrying,D05T09,D10T33,Manufacturing
+8654409.934,Manufacturing,D10T33,D10T33,Manufacturing
+342459.683,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D10T33,Manufacturing
+58854.02,Construction,D41T43,D10T33,Manufacturing
+1777614.604,Wholesale and retail trade; repair of motor vehicles,D45T47,D10T33,Manufacturing
+575645.763,Transportation and storage,D49T53,D10T33,Manufacturing
+83152.365,Accommodation and food services,D55T56,D10T33,Manufacturing
+219091.825,Information and communication,D58T63,D10T33,Manufacturing
+228686.653,Real estate activities,D68,D10T33,Manufacturing
+931582.999,Other business sector services,D69T82,D10T33,Manufacturing
+154716.398,Mining and quarrying,D05T09,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+94611.714,Manufacturing,D10T33,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+674889.93,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+12554.705,Construction,D41T43,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+69232.13,Wholesale and retail trade; repair of motor vehicles,D45T47,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+28608.055,Transportation and storage,D49T53,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+6215.288,Accommodation and food services,D55T56,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+17745.021,Information and communication,D58T63,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+16627.465,Real estate activities,D68,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+71158.154,Other business sector services,D69T82,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+506175.542,Mining and quarrying,D05T09,D41T43,Construction
+1709063.333,Manufacturing,D10T33,D41T43,Construction
+165100.866,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D41T43,Construction
+3685200.992,Construction,D41T43,D41T43,Construction
+693650.048,Wholesale and retail trade; repair of motor vehicles,D45T47,D41T43,Construction
+269545.011,Transportation and storage,D49T53,D41T43,Construction
+55258.166,Accommodation and food services,D55T56,D41T43,Construction
+107154.502,Information and communication,D58T63,D41T43,Construction
+124583.926,Real estate activities,D68,D41T43,Construction
+557540.089,Other business sector services,D69T82,D41T43,Construction
+76492.067,Mining and quarrying,D05T09,D45T47,Wholesale and retail trade; repair of motor vehicles
+285938.138,Manufacturing,D10T33,D45T47,Wholesale and retail trade; repair of motor vehicles
+61373.027,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D45T47,Wholesale and retail trade; repair of motor vehicles
+31798.366,Construction,D41T43,D45T47,Wholesale and retail trade; repair of motor vehicles
+3669967.227,Wholesale and retail trade; repair of motor vehicles,D45T47,D45T47,Wholesale and retail trade; repair of motor vehicles
+156035.16,Transportation and storage,D49T53,D45T47,Wholesale and retail trade; repair of motor vehicles
+29123.692,Accommodation and food services,D55T56,D45T47,Wholesale and retail trade; repair of motor vehicles
+102794.766,Information and communication,D58T63,D45T47,Wholesale and retail trade; repair of motor vehicles
+232256.191,Real estate activities,D68,D45T47,Wholesale and retail trade; repair of motor vehicles
+401480.953,Other business sector services,D69T82,D45T47,Wholesale and retail trade; repair of motor vehicles
+153027.827,Mining and quarrying,D05T09,D49T53,Transportation and storage
+255952.377,Manufacturing,D10T33,D49T53,Transportation and storage
+41722.379,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D49T53,Transportation and storage
+20679.559,Construction,D41T43,D49T53,Transportation and storage
+189285.762,Wholesale and retail trade; repair of motor vehicles,D45T47,D49T53,Transportation and storage
+1738885.906,Transportation and storage,D49T53,D49T53,Transportation and storage
+23456.883,Accommodation and food services,D55T56,D49T53,Transportation and storage
+55283.092,Information and communication,D58T63,D49T53,Transportation and storage
+63723.769,Real estate activities,D68,D49T53,Transportation and storage
+213966.593,Other business sector services,D69T82,D49T53,Transportation and storage
+49677.585,Mining and quarrying,D05T09,D55T56,Accommodation and food services
+286329.484,Manufacturing,D10T33,D55T56,Accommodation and food services
+40653.326,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D55T56,Accommodation and food services
+9433.282,Construction,D41T43,D55T56,Accommodation and food services
+249795.032,Wholesale and retail trade; repair of motor vehicles,D45T47,D55T56,Accommodation and food services
+56142.685,Transportation and storage,D49T53,D55T56,Accommodation and food services
+1352881.349,Accommodation and food services,D55T56,D55T56,Accommodation and food services
+35182.64,Information and communication,D58T63,D55T56,Accommodation and food services
+100978.703,Real estate activities,D68,D55T56,Accommodation and food services
+161894.473,Other business sector services,D69T82,D55T56,Accommodation and food services
+35895.788,Mining and quarrying,D05T09,D58T63,Information and communication
+205954.366,Manufacturing,D10T33,D58T63,Information and communication
+31529.983,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D58T63,Information and communication
+13691.944,Construction,D41T43,D58T63,Information and communication
+176213.167,Wholesale and retail trade; repair of motor vehicles,D45T47,D58T63,Information and communication
+58239.954,Transportation and storage,D49T53,D58T63,Information and communication
+19148.707,Accommodation and food services,D55T56,D58T63,Information and communication
+2032280.195,Information and communication,D58T63,D58T63,Information and communication
+75979.973,Real estate activities,D68,D58T63,Information and communication
+273283.589,Other business sector services,D69T82,D58T63,Information and communication
+51252.125,Mining and quarrying,D05T09,D68,Real estate activities
+147152.009,Manufacturing,D10T33,D68,Real estate activities
+70550.496,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D68,Real estate activities
+102234.078,Construction,D41T43,D68,Real estate activities
+97705.707,Wholesale and retail trade; repair of motor vehicles,D45T47,D68,Real estate activities
+39298.341,Transportation and storage,D49T53,D68,Real estate activities
+25586.863,Accommodation and food services,D55T56,D68,Real estate activities
+57914.957,Information and communication,D58T63,D68,Real estate activities
+5197569.717,Real estate activities,D68,D68,Real estate activities
+250771.396,Other business sector services,D69T82,D68,Real estate activities
+30164.118,Mining and quarrying,D05T09,D69T82,Other business sector services
+120020.523,Manufacturing,D10T33,D69T82,Other business sector services
+23134.907,"Electricity, gas, water supply, sewerage, waste and remediation services",D35T39,D69T82,Other business sector services
+10985.962,Construction,D41T43,D69T82,Other business sector services
+101391.417,Wholesale and retail trade; repair of motor vehicles,D45T47,D69T82,Other business sector services
+44856.384,Transportation and storage,D49T53,D69T82,Other business sector services
+27861.755,Accommodation and food services,D55T56,D69T82,Other business sector services
+72607.407,Information and communication,D58T63,D69T82,Other business sector services
+63544.775,Real estate activities,D68,D69T82,Other business sector services
+1631955.753,Other business sector services,D69T82,D69T82,Other business sector services
+245289.857,Industry (except construction),D05T39,D05T09,Mining and quarrying
+10023136.608,Industry (except construction),D05T39,D10T33,Manufacturing
+924218.042,Industry (except construction),D05T39,D35T39,"Electricity, gas, water supply, sewerage, waste and remediation services"
+2380339.741,Industry (except construction),D05T39,D41T43,Construction
+423803.232,Industry (except construction),D05T39,D45T47,Wholesale and retail trade; repair of motor vehicles
+450702.583,Industry (except construction),D05T39,D49T53,Transportation and storage
+376660.395,Industry (except construction),D05T39,D55T56,Accommodation and food services
+273380.137,Industry (except construction),D05T39,D58T63,Information and communication
+268954.63,Industry (except construction),D05T39,D68,Real estate activities
+173319.548,Industry (except construction),D05T39,D69T82,Other business sector services
+11192644.507,Industry (except construction),D05T39,D05T39,Industry (except construction)

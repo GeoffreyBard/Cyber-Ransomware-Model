@@ -6,24 +6,24 @@
   calibration <- function()
   {
     #Information pris de l'OCDE
-    p <- "E:/Download/Download Chrome/valueadd.csv"
+    p <- "E:/Mémoire/Cyber-Ransomware-Model/DatabaseAvant/turnover.csv"
     df <- read.csv(p)
     indice <- which(df$TIME==2015)
     df2 <- df[indice,]
     
-    nbrfi <- sum(df2$Value[which(df2$ISIC4=="Financial and insurance activities")],na.rm = T)
+    nbrfi <- sum(df2$Value[which(df2$ISIC4.1=="Financial and insurance activities")],na.rm = T)+100000
     
-    nbrmpci <- sum(df2$Value[which(df2$ISIC4=="Manufacturing"|df2$ISIC4=="Construction")],na.rm = T)
+    nbrmpci <- sum(df2$Value[which(df2$ISIC4.1=="Manufacturing"|df2$ISIC4.1=="Construction")],na.rm = T)
     
-    nbrpublic <- sum(df2$Value[which(df2$ISIC4=="Administrative and support service activities")],na.rm = T)
+    nbrpublic <- sum(df2$Value[which(df2$ISIC4.1=="Administrative and support service activities")],na.rm = T)
     
     
     
-    nbrit<- sum(df2$Value[which(df2$ISIC4=="Information and communication")],na.rm = T)*0.7
+    nbrit<- sum(df2$Value[which(df2$ISIC4.1=="Information and communication")],na.rm = T)*0.7
     
-    nbrmld <- (nbrit/0.7)*0.3+sum(df2$Value[which(df2$ISIC4=="Administrative and support service activities")],na.rm=T)*0.1
+    nbrmld <- (nbrit/0.7)*0.3+sum(df2$Value[which(df2$ISIC4.1=="Administrative and support service activities")],na.rm=T)*0.1
     
-    nbrenergie <- sum(df2$Value[which(df2$ISIC4=="Mining and quarrying"|df2$ISIC4=="Electricity, gas, steam and air conditioning supply")],na.rm = T)*0.8
+    nbrenergie <- sum(df2$Value[which(df2$ISIC4.1=="Mining and quarrying"|df2$ISIC4.1=="Electricity, gas, steam and air conditioning supply")],na.rm = T)*0.8
     
     
     nbrentreprises <- c(nbrfi,nbrit,nbrpublic,nbrmld,nbrmpci,nbrenergie)
@@ -63,7 +63,7 @@
     
     
     
-    #Pour Mp et Ci
+    #Pour Mp et Ci pour faire du proportionnel
     nbrmp <- 648
     nbrci <- 547
     summ <- nbrmp+nbrci
@@ -75,6 +75,7 @@
     touch_mpci <- (0.46*coef1+0.49*coef2)
     touch <- c(0.48,0.56,0.45,0.6,touch_mpci,0.55)
     names(touch) <- names(nbrentreprises) 
+    
     #Secteur Couvert assurance by ransomware
     couvert_mpci <- 0.63*coef1+0.62*coef2
     couvert <- c(0.72,0.7,0.51,0.63,couvert_mpci,0.62)
@@ -188,7 +189,7 @@
 
 
 
-p <- "E:/Download/Download Chrome/SSIS_BSC_ISIC4_14112021160808943.csv"
+p <- "E:/Mémoire/Cyber-Ransomware-Model/DatabaseAvant/turnover.csv"
 df <- read.csv(p)
 indice <- which(df$TIME==2015)
 df <- df[indice,]
@@ -236,7 +237,7 @@ nbrenergie <- sum(df2$Value[which(df2$ISIC4=="Mining and quarrying"|df2$ISIC4=="
 
 
 
-p <- "E:/Download/Download Chrome/SSIS_BSC_ISIC4_14112021163330219.csv"
+p <-"E:/Mémoire/Cyber-Ransomware-Model/DatabaseAvant/turnover.csv"
 df2 <- read.csv(p)
 indice <- which(df$TIME==2015)
 df2 <- df2[indice,]
@@ -680,21 +681,3 @@ gC<- ggplot(dfC, aes(x = time)) +
 F6 <- grid.arrange(gA,gB,gC,p1)
 
 
-
-class <- c("Enforcer","Sniper","Clockwork"
-           ,"Mechanic","Syndicate","Bodyward"
-           ,"Scrap","Innovator","Academy","Protector",
-           "Twinshot","Mercenary","Bruiser",
-           "Mutant","Yordle","Arcanist","Chemtech","Assasin","Enchanter",
-           "Challenger","Imperial","Sister","Scholar","Colossus","Socialite",
-           "Transformer","Gluton","Cuddly")
-
-classFR <- c("Justicier","Sniper","Mécanique"
-           ,"Mechanic","Pègre","Garde du corps"
-           ,"Ferrailleur","Innovateur","Étudiant","Protecteur",
-           "Répétireur","Mercenaire","Combattant",
-           "Mutant","Yordle","Arcanist","Techno-Chimiste","Assasin","Enchanter",
-           "Challenger","Imperial","Soeur","Érudit","Colosse","Vedette",
-           "Transformeur","Gluton","Câlin")
-
-sort(classFR)
