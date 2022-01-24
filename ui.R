@@ -1,5 +1,5 @@
 #Introduction
-required_packages <- c("data.table","gtools","ggplot2","shiny","shinyFiles","shinythemes","shinyWidgets","rmarkdown","shinycssloaders")
+required_packages <- c("data.table","gtools","ggplot2","shiny","shinyFiles","shinythemes","shinyWidgets","rmarkdown","shinycssloaders","RColorBrewer","gridExtra","deSolve")
 lapply(required_packages,library,character.only=T)
 #INTRO-----------------------------------------------This file allows us to place the visual elements of the application ----------------------------------------------------------------------------------------------------------------
 #How does it work? 
@@ -23,14 +23,14 @@ lapply(required_packages,library,character.only=T)
 
 # A more complicated app with the flatly theme
 shinyUI(fluidPage(
-    theme = shinytheme("darkly"),
+    # theme = shinytheme("darkly"),
     navbarPage(id = "nav_tab","Applications : Modélisation de la propagation d'un ransomware",
     tabPanel("Multi-groupe SIR sur des portefeuilles",value = "home",
      sidebarLayout(
       sidebarPanel(
         h3("Paramètres épidémie"),
         checkboxGroupInput("vecSA", "Secteurs d'activité :",
-                           c("Mines et carrières" = "D05T09",
+                           list("Mines et carrières" = "D05T09",
                              "Fabrication" = "D10T33",
                              "Electricite, gaz, eaux et déchets" = "D35T39",
                              "Construction" = "D41T43",
@@ -100,13 +100,14 @@ shinyUI(fluidPage(
                                            
                                   ),
                      ),
-          tabPanel("Graphique infection", verbatimTextOutput("summary")),
-          tabPanel("Graphique Portefeuille", tableOutput("table"))
+          tabPanel("Graphique infection",
+          plotOutput("plot1", width = "100%")),
+          tabPanel("Graphique Portefeuille",plotOutput("plot2", width = "150%"),plotOutput("plot3", width = "150%"))
         ),width = 10
       )
     )
     ),
-    tabPanel("Inputs Retreatments", value = "Inputs retreatments",
+    tabPanel("Application 2", value = "Inputs retreatments",
     )
    )
   )
