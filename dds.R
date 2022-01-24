@@ -1,16 +1,22 @@
 library(data.table)
+library(ggplot2)
 library(gtools)
 library(deSolve)
-
+library(RColorBrewer)
+library(gridExtra)
 #Inputs à avoir dans l'appli
 vecSA <- c("D05T09","D10T33","D35T39","D41T43","D45T47")
-decomposition <- c(1,1,1,1,1)
-loigamma <- c("exp")
-beta <- 0.3
+Npop=4064278
+loigamma <- c("exp") 
+beta <- 1.845*10^-5
 choix <- 1
-N=4064278
-Npop=10000 #Taille pf
+Npop=4064278
+pf=10000#Taille pf
+times <- seq(from = 0,to = 30)
+Country_portC <- c("France","Sweden")
+SA_portC <- c(0,0,0,0.2,0.8,0,0,0,0,2)
 
+#FUNCTION
 CalculMatriceBeta <- function(va,vecSA,decomposition)
 {
   #Get from csv
@@ -77,7 +83,7 @@ global_ocde <- function(ocde,vecSA,vecSAname)
   turnover_global <- unlist(lapply(vecSA, function(x){sum(ocde$Value[which(ocde$Code==x&ocde$Variable=="Turnover")],na.rm = T)}))
   
   employe_global <- unlist(lapply(vecSA, function(x){sum(ocde$Value[which(ocde$Code==x&ocde$Variable=="Number of employees")],na.rm = T)}))
-
+  
   df <- data.frame("Secteur"=vecSAname,"Code"=vecSA,"Entreprises"=nbre_global,"EntreprisesNorm"=nbre_global/sum(nbre_global),"Turnover"=turnover_global,"Employees"=employe_global)
   
   #Sophois touch et couvert
@@ -94,6 +100,15 @@ global_ocde <- function(ocde,vecSA,vecSAname)
   coutsecteur <- coutsecteur/mean(coutsecteur)
   
   df <- data.frame(df,touch,touchNormCum,couvert,couvertNormCum,coutsecteur)
+  
+  #Color Graph
+  redcolor <- c(brewer.pal(n = 9, name = "Reds"),"#400000")
+  bluecolor <- c(brewer.pal(n = 9, name = 'Blues'),"#03095B")
+  greencolor <-  c(brewer.pal(n = 9, name = 'Greens'),"#01300E")
+  sacolor <-  c(brewer.pal(n = 10, name = 'Spectral'))
+  
+  df <- data.frame(df,"redcolor"=redcolor[seq(1,10,by=(10/dim(df)[1]))],"bluecolor"=bluecolor[seq(1,10,by=(10/dim(df)[1]))],"greencolor"=greencolor[seq(1,10,by=(10/dim(df)[1]))],"sacolor"=greencolor[seq(1,10,by=(10/dim(df)[1]))])
+  
   return(df)
 }
 
@@ -119,17 +134,17 @@ pays_ocde <- function(ocde,vecSA,vecSAname)
   return(merge(df,df2,by="Pays"))
 }
 
-NormalizationByAll <- function(va,vecSA,decomposition,vecSAname,globalocde,paysocde,matB,ocde,loigamma)
+NormalizationByAll <- function(va,vecSA,decomposition,vecSAname,globalocde,paysocde,matB,ocde,loigamma,beta)
 {
   #PREMIERE NORMALIZATION BY NBR D ENTREPRISES DES DEUX SECTEURS, LA SYMETRIE EST CONSERVE AINSI QUE DE TOUCH SUR SOPHOS
-   for (i in 1:length(vecSA))
-   {
-     for (j in 1:length(vecSA))
-     {
-       matB[i,j] <- matB[i,j]/(globalocde$Entreprises[i]+globalocde$Entreprises[j])
-       matB[i,j] <- matB[i,j]*(1+(ocde$touch[which(ocde$Code==vecSA[i])[1]]+ocde$touch[which(ocde$Code==vecSA[j])[1]]))
-     }
-   }
+  for (i in 1:length(vecSA))
+  {
+    for (j in 1:length(vecSA))
+    {
+      matB[i,j] <- matB[i,j]/(globalocde$Entreprises[i]+globalocde$Entreprises[j])
+      matB[i,j] <- matB[i,j]*(1+(ocde$touch[which(ocde$Code==vecSA[i])[1]]+ocde$touch[which(ocde$Code==vecSA[j])[1]]))
+    }
+  }
   
   #LOI A DEFINIR ET JUSTIFIE + COUVERT SELON SOPHOS 
   Gamma <- rep(1,length(vecSA))
@@ -146,8 +161,8 @@ NormalizationByAll <- function(va,vecSA,decomposition,vecSAname,globalocde,payso
   #Value Beta
   matB <-beta*matB
   
-
-
+  
+  
   return(list(matB,Gamma))
   
 }
@@ -168,7 +183,6 @@ Ajout_sophos_touch_couvert<- function(ocde)
   return(ocde)
 }
 
-
 ignitepf <- function(choix,globalocde,Npop)
 {
   #Alea punif REPRESENTATIF DE LA POPULATION ACTUELLE, ET INCENDIE 
@@ -187,58 +201,59 @@ ignitepf <- function(choix,globalocde,Npop)
     for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("I",i)))}
     for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("R",i)))}
     return(y0)
-  
-  #ignite_punif
-  }else if(choix==2){
-      alpha <- 7*10^-3
-      y0 <- c()
-      for(i in 1:dim(globalocde)[1])
-      {
-        assign(paste('I', i, sep=''),Npop*globalocde$EntreprisesNorm[i]*alpha)
-        assign(paste('S', i, sep=''),Npop*globalocde$EntreprisesNorm[i]-get(paste0("I",i)))
-        assign(paste('R', i, sep=''), 0)
-      }
-      for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("S",i)))}
-      for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("I",i)))}
-      for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("R",i)))}
-      return(y0)
-
     
-  #alea_port_equi
+    #ignite_punif
+  }else if(choix==2){
+
+    repart <- runif(dim(globalocde)[1],1/(dim(globalocde)[1]+1),(1/(dim(globalocde)[1]-1)))
+    repart <- repart/sum(repart)
+    y0 <- c()
+    for(i in 1:dim(globalocde)[1])
+    {
+      if(touch[i]<rand&rand<touch[i+1]){assign(paste('I', i, sep=''),1)}else{assign(paste('I', i, sep=''),0)}
+      if(get(paste0("I",i))==0){assign(paste('S', i, sep=''),Npop*repart[i])}else{assign(paste('S', i, sep=''),Npop*globalocde$repart[i]-1)}
+      assign(paste('R', i, sep=''), 0)
+    }
+    for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("S",i)))}
+    for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("I",i)))}
+    for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("R",i)))}
+    return(y0)
+    
+    #alea_port_equi
   }else if(choix==3){
-      repart <- runif(dim(globalocde)[1],1/(dim(globalocde)[1]+1),(1/(dim(globalocde)[1]-1)))
-      repart <- repart/sum(repart)
-      y0 <- c()
-      for(i in 1:dim(globalocde)[1])
-      {
-        if(touch[i]<rand&rand<touch[i+1]){assign(paste('I', i, sep=''),1)}else{assign(paste('I', i, sep=''),0)}
-        if(get(paste0("I",i))==0){assign(paste('S', i, sep=''),Npop*repart[i])}else{assign(paste('S', i, sep=''),Npop*globalocde$repart[i]-1)}
-        assign(paste('R', i, sep=''), 0)
-      }
-      for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("S",i)))}
-      for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("I",i)))}
-      for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("R",i)))}
-      return(y0)
-  
-  #ignite_port_equi 
+
+    repart <- runif(dim(globalocde)[1],1/(dim(globalocde)[1]+1),(1/(dim(globalocde)[1]-1)))
+    repart <- repart/sum(repart)
+    y0 <- c()
+    alpha <- 7*10^-3
+    for(i in 1:dim(globalocde)[1])
+    {
+      assign(paste('I', i, sep=''),Npop*repart*alpha)
+      assign(paste('S', i, sep=''),Npop*globalocde$EntreprisesNorm[i]-get(paste0("I",i)))
+      assign(paste('R', i, sep=''), 0)
+    }
+    for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("S",i)))}
+    for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("I",i)))}
+    for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("R",i)))}
+    return(y0)
+    #ignite_port_equi 
   }else{
-      repart <- runif(dim(globalocde)[1],1/(dim(globalocde)[1]+1),(1/(dim(globalocde)[1]-1)))
-      repart <- repart/sum(repart)
-      y0 <- c()
-      alpha <- 7*10^-3
-      for(i in 1:dim(globalocde)[1])
-      {
-        assign(paste('I', i, sep=''),Npop*repart*alpha)
-        assign(paste('S', i, sep=''),Npop*globalocde$EntreprisesNorm[i]-get(paste0("I",i)))
-        assign(paste('R', i, sep=''), 0)
-      }
-      for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("S",i)))}
-      for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("I",i)))}
-      for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("R",i)))}
-      return(y0)
+    alpha <- 7*10^-3
+    y0 <- c()
+    for(i in 1:dim(globalocde)[1])
+    {
+      assign(paste('I', i, sep=''),Npop*globalocde$EntreprisesNorm[i]*alpha)
+      assign(paste('S', i, sep=''),Npop*globalocde$EntreprisesNorm[i]-get(paste0("I",i)))
+      assign(paste('R', i, sep=''), 0)
+    }
+    for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("S",i)))}
+    for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("I",i)))}
+    for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("R",i)))}
+    return(y0)
   }
   
 }
+
 sirmg2 <- function (t, state, parameters)
 {
   ## Initialize S I R à T=0 and N
@@ -289,10 +304,294 @@ sirmg2 <- function (t, state, parameters)
   list(dxdt)
 }
 
-
-
-main <- function(vecSA,decomposition) #vecSA Nom exact, decomposition si ils vont ensembles
+calcul_out <- function(y0,times,parms)
 {
+  out <- data.frame(ode(func = sirmg2,y = y0,times = times,parms = unlist(parms),method = 'lsodar'))
+  names(out) <- c("time",unlist(lapply(1:(length(y0)/3),function(x){paste0("S",x)})),unlist(lapply(1:(length(y0)/3),function(x){paste0("I",x)})),unlist(lapply(1:(length(y0)/3),function(x){paste0("R",x)})))
+  out$S <- rowSums(out[,2:(length(y0)/3+1)])
+  out$I <- rowSums(out[,(length(y0)/3+2):(2*(length(y0)/3)+1)])
+  out$R <- rowSums(out[,(2*(length(y0)/3)+2):(3*(length(y0)/3)+1)])
+  return(out)
+}
+
+graph_infected <- function(choix,out,globalocde,times)
+{
+  #IGNITE
+  color <- as.vector(globalocde$sacolor)
+  names(color) <- globalocde$Secteur
+  if (choix==2|choix==4)
+  {
+    g1<- ggplot(out, aes(x = times))
+    for(i in 1:dim(globalocde)[1])
+    {
+      if(i==1){g1 <- g1+geom_line(aes(y=I1,color=names(color)[1]),size = 1.5)}
+      if(i==2){g1 <- g1+geom_line(aes(y=I2,color=names(color)[2]),size = 1.5)}
+      if(i==3){g1 <- g1+geom_line(aes(y=I3,color=names(color)[3]),size = 1.5)}
+      if(i==4){g1 <- g1+geom_line(aes(y=I4,color=names(color)[4]),size = 1.5)}
+      if(i==5){g1 <- g1+geom_line(aes(y=I5,color=names(color)[5]),size = 1.5)}
+      if(i==6){g1 <- g1+geom_line(aes(y=I6,color=names(color)[6]),size = 1.5)}
+      if(i==7){g1 <- g1+geom_line(aes(y=I7,color=names(color)[7]),size = 1.5)}
+      if(i==8){g1 <- g1+geom_line(aes(y=I8,color=names(color)[8]),size = 1.5)}
+      if(i==9){g1 <- g1+geom_line(aes(y=I9,color=names(color)[9]),size = 1.5)}
+      if(i==10){g1 <- g1+geom_line(aes(y=I10,color=names(color)[10]),size = 1.5)}
+    }
+
+    g1 <-  g1 + labs(x = 'jours',y = "Nombre d'entreprises infectées",color = "Legend")+ylim(c(0,max(out[,(dim(globalocde)[1]+2):(dim(globalocde)[1]*2+1)])))
+    
+    g2<- ggplot(out, aes(x = time)) + 
+      geom_line(aes(y=I,color="Infectés cumulés"),size = 1.5) + 
+      labs(x = 'jours',y = "Nombre d'entreprises infectées")
+    
+    F4 <- grid.arrange(g1,g2)
+    
+    #ALEA
+  }else{
+    
+    infect <- paste("Le premier infecté appartient à",globalocde$Secteur[which(y0[(dim(globalocde)[1]+1):(dim(globalocde)[1]*2)]==1)])
+
+    g3<- ggplot(out, aes(x = time)) 
+    for(i in 1:dim(globalocde)[1])
+    {
+      if(i==1){g3 <- g3+geom_line(aes(y=I1,color=names(color)[1]),size = 1.5)}
+      if(i==2){g3 <- g3+geom_line(aes(y=I2,color=names(color)[2]),size = 1.5)}
+      if(i==3){g3 <- g3+geom_line(aes(y=I3,color=names(color)[3]),size = 1.5)}
+      if(i==4){g3 <- g3+geom_line(aes(y=I4,color=names(color)[4]),size = 1.5)}
+      if(i==5){g3 <- g3+geom_line(aes(y=I5,color=names(color)[5]),size = 1.5)}
+      if(i==6){g3 <- g3+geom_line(aes(y=I6,color=names(color)[6]),size = 1.5)}
+      if(i==7){g3 <- g3+geom_line(aes(y=I7,color=names(color)[7]),size = 1.5)}
+      if(i==8){g3 <- g3+geom_line(aes(y=I8,color=names(color)[8]),size = 1.5)}
+      if(i==9){g3 <- g3+geom_line(aes(y=I9,color=names(color)[9]),size = 1.5)}
+      if(i==10){g3 <- g3+geom_line(aes(y=I10,color=names(color)[10]),size = 1.5)}
+      
+    }
+    g3<-g3+labs(x = 'jours',y = "Nombre d'entreprises infectées",color = "Legend",caption=infect)+ylim(c(0,max(out[,(dim(globalocde)[1]+2):(dim(globalocde)[1]*2+1)])))
+    
+    g4<- ggplot(out, aes(x = time)) + 
+      geom_line(aes(y=I,color="Infectés cumulés"),size = 1.5) + 
+      labs(x = 'jours',y = "Nombre d'entreprises infectées")
+    F5 <-grid.arrange(g3,g4)
+  }
+}
+
+#FORMULE TAILLE FINALE EPIDEMIE
+Nbr_infectes_SA <- function(y0,MatB,gamma,k,X)
+{
+  c <- 0
+  for (l in 1:dim(MatB)[1])
+  {
+    c <- c+(MatB[k,l]/gamma[l])*(X[l]-y0[l])
+  }
+  d <-0
+  for (l in 1:dim(MatB)[1])
+  {
+    d <- d+(MatB[k,l]/gamma[l])*y0[5+l]
+  }
+  X[k] <- y0[k]*exp(c)-d
+  return(X)
+}
+
+Calcul_taille <- function(X,y0,MatB,gamma)
+{
+  for (j in 1:10000)
+  {
+    for (i in 1:dim(MatB)[1])
+    {
+      X <- Nbr_infectes_SA(y0,MatB,gamma,i,X)
+    }
+  }
+  return(X)
+}
+
+#PORTEFEUILLE REPRESENTATIF DE LA COMPOSITION ACTUELLE
+portA <- function(globalocde,paysocde,pf)
+{
+  #CONSTRUCTION DU PF
+  pA <- matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
+  for(i in 1:dim(globalocde)[1])
+  {
+    for(j in 1:dim(paysocde)[1])
+    {
+      pA[i,j] <- globalocde$Entreprises[i]*paysocde$Entreprises[j]
+    }
+  }
+  pA <- pA/sum(pA)*pf #Taille
+  #QUI EST TOUCHE
+  touchA <- matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
+  for(i in 1:dim(globalocde)[1])
+  {
+    for(j in 1:dim(paysocde)[1])
+    {
+      touchA[i,j] <- prop_SA[i]*pA[i,j]
+    }
+  }
+  coutA <-  matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
+  for(i in 1:dim(globalocde)[1])
+  {
+    for(j in 1:dim(paysocde)[1])
+    {
+      coutA[i,j] <- (globalocde$coutsecteur[i]*paysocde$cost[j])*touchA[i,j]
+    }
+  }
+  return(list(pA,touchA,coutA))
+  
+}
+
+#PORTEFEUILLE ALEATOIRE
+portB <- function(globalocde,paysocde,pf)
+{
+  #CONSTRUCTION DU PF
+  pB <- matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
+  repart_SA <- runif(dim(globalocde)[1],0,1)
+  repart_SA <- repart_SA/sum(repart_SA)
+  for(i in 1:dim(globalocde)[1])
+  {
+    for(j in 1:dim(paysocde)[1])
+    {
+      pB[i,j] <- repart_SA[i]*paysocde$Entreprises[j]
+    }
+  }
+  pB <- pB/sum(pB)*pf #Taille
+  #QUI EST TOUCHE
+  touchB <- matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
+  for(i in 1:dim(globalocde)[1])
+  {
+    for(j in 1:dim(paysocde)[1])
+    {
+      touchB[i,j] <- prop_SA[i]*pB[i,j]
+    }
+  }
+  coutB <-  matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
+  for(i in 1:dim(globalocde)[1])
+  {
+    for(j in 1:dim(paysocde)[1])
+    {
+      coutB[i,j] <- (globalocde$coutsecteur[i]*paysocde$cost[j])*touchB[i,j]
+    }
+  }
+  return(list(pB,touchB,coutB))
+  
+}
+
+#PortefeuilleC Uniquement Français, sur les 2 premières sociétés
+portC <- function(globalocde,paysocde,pf,Country_portC,SA_portC)
+{
+  #Recuperer name
+  nom_sa <- c("Mining and quarrying","Manufacturing","Electricity, gas, water supply, sewerage, waste and remediation services","Construction","Wholesale and retail trade; repair of motor vehicles"
+              ,"Transportation and storage","Accommodation and food service activities","Information and communication","Real estate activities","Other business sector services")
+  
+  #CONSTRUCTION DU PF
+  pC <- matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
+  
+  names(SA_portC) <- nom_sa
+  
+  indice_SA <- NULL
+  for(i in 1:dim(globalocde)[1])
+  {
+    indice_SA <- c(indice_SA,which(names(SA_portC)==globalocde$Secteur[i]))
+  }
+  SA_portC <- SA_portC[indice_SA]
+  SA_portC <- SA_portC/sum(SA_portC)
+  for(i in 1:dim(globalocde)[1])
+  {
+    
+    for(j in 1:length(Country_portC))
+    {
+        indice <- which(paysocde$Pays==Country_portC[j])
+        pC[i,indice] <-paysocde$Entreprises[indice]*SA_portC[i]
+    }
+    
+  }
+  pC <- pC/sum(pC)*pf #Taille
+  #QUI EST TOUCHE
+  touchC <- matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
+  for(i in 1:dim(globalocde)[1])
+  {
+    for(j in 1:dim(paysocde)[1])
+    {
+      touchC[i,j] <- prop_SA[i]*pC[i,j]
+    }
+  }
+  coutC <-  matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
+  for(i in 1:dim(globalocde)[1])
+  {
+    for(j in 1:dim(paysocde)[1])
+    {
+      coutC[i,j] <- (globalocde$coutsecteur[i]*paysocde$cost[j])*touchC[i,j]
+    }
+  }
+  return(list(pC,touchC,coutC))
+  
+}
+
+
+graphpf <- function(pfA,touchA,coutA,pfB,touchB,coutB,pfC,touchC,coutC,out,Sains,times)
+{
+  pfcolor = c("Portefeuille A" = "red4","Portefeuille B"= "green4","Portefeuille C"= "blue4")
+  coutpf <- data.frame(portefeuille = c("Portefeuille A","Portefeuille B","Portefeuille C"),cout=c(sum(coutA),sum(coutB),sum(coutC)))
+  
+  #COUT DES PF
+  p1<-ggplot(data=coutpf, aes(x=portefeuille, y=cout)) +
+    geom_bar(stat="identity",fill = pfcolor)+    
+    labs(x = 'portefeuilles',y = "Cout des portefeuilles",s = "Legend") +
+    geom_text(aes(label=c("Nombre d'entreprises touchées :")), vjust=1.6, color="white", size=3.5)+
+    geom_text(aes(label=c(round(sum(touchA)),round(sum(touchB)),round(sum(touchC)))), vjust=2.6, color="white", size=6.5)+
+    geom_text(aes(label=c("Cout Moyen d'une entreprise :")), vjust=7.6, color="white", size=3.5)+
+    geom_text(aes(label=c(round(sum(coutA)/sum(touchA)),round(sum(coutB)/sum(touchB)),round(sum(coutC)/sum(touchC)))), vjust=5.6, color="white", size=6.5)
+  
+  #Assignation des variables
+  dfA <- data.frame(times)
+  dfB <- data.frame(times)
+  dfC <- data.frame(times)
+  color <- as.vector(globalocde$sacolor)
+  names(color) <- globalocde$Secteur
+  nA <- c("times")
+  nB <- c("times")
+  nC <- c("times")
+  for(i in 1:length(globalocde$Secteur))
+  {
+    dfA <- data.frame(dfA,assign(paste('I', i, "A",sep=''), sum(pfA[i,])*out[,paste0("I",i)]/Sains[i]))
+    dfB <- data.frame(dfB,assign(paste('I', i, "B",sep=''), sum(pfB[i,])*out[,paste0("I",i)]/Sains[i]))
+    dfC <- data.frame(dfC,assign(paste('I', i, "C",sep=''), sum(pfC[i,])*out[,paste0("I",i)]/Sains[i]))
+    nA<-c(nA,paste0('I', i, "A"))
+    nB<-c(nB,paste0('I', i, "B"))
+    nC<-c(nC,paste0('I', i, "C"))
+  }
+  
+  names(dfA) <- nA
+  names(dfB) <- nB
+  names(dfC) <- nC
+
+  gA<- ggplot(dfA, aes(x = times))
+  gB<- ggplot(dfB, aes(x = times))
+  gC<- ggplot(dfC, aes(x = times))
+  for(i in 1:dim(globalocde)[1])
+  {
+    if(i==1){gA <- gA+geom_line(aes(y=I1A,color=names(color)[1]),size = 1.5);gB <- gB+geom_line(aes(y=I1B,color=names(color)[1]),size = 1.5);gC <- gC+geom_line(aes(y=I1C,color=names(color)[1]),size = 1.5)}
+    if(i==2){gA <- gA+geom_line(aes(y=I2A,color=names(color)[2]),size = 1.5);gB <- gB+geom_line(aes(y=I2B,color=names(color)[2]),size = 1.5);gC <- gC+geom_line(aes(y=I2C,color=names(color)[2]),size = 1.5)}
+    if(i==3){gA <- gA+geom_line(aes(y=I3A,color=names(color)[3]),size = 1.5);gB <- gB+geom_line(aes(y=I3B,color=names(color)[3]),size = 1.5);gC <- gC+geom_line(aes(y=I3C,color=names(color)[3]),size = 1.5)}
+    if(i==4){gA <- gA+geom_line(aes(y=I4A,color=names(color)[4]),size = 1.5);gB <- gB+geom_line(aes(y=I4B,color=names(color)[4]),size = 1.5);gC <- gC+geom_line(aes(y=I4C,color=names(color)[4]),size = 1.5)}
+    if(i==5){gA <- gA+geom_line(aes(y=I5A,color=names(color)[5]),size = 1.5);gB <- gB+geom_line(aes(y=I5B,color=names(color)[5]),size = 1.5);gC <- gC+geom_line(aes(y=I5C,color=names(color)[5]),size = 1.5)}
+    if(i==6){gA <- gA+geom_line(aes(y=I6A,color=names(color)[6]),size = 1.5);gB <- gB+geom_line(aes(y=I6B,color=names(color)[6]),size = 1.5);gC <- gC+geom_line(aes(y=I6C,color=names(color)[6]),size = 1.5)}
+    if(i==7){gA <- gA+geom_line(aes(y=I7A,color=names(color)[7]),size = 1.5);gB <- gB+geom_line(aes(y=I7B,color=names(color)[7]),size = 1.5);gC <- gC+geom_line(aes(y=I7C,color=names(color)[7]),size = 1.5)}
+    if(i==8){gA <- gA+geom_line(aes(y=I8A,color=names(color)[8]),size = 1.5);gB <- gB+geom_line(aes(y=I8B,color=names(color)[8]),size = 1.5);gC <- gC+geom_line(aes(y=I8C,color=names(color)[8]),size = 1.5)}
+    if(i==9){gA <- gA+geom_line(aes(y=I9A,color=names(color)[9]),size = 1.5);gB <- gB+geom_line(aes(y=I9B,color=names(color)[9]),size = 1.5);gC <- gC+geom_line(aes(y=I9C,color=names(color)[9]),size = 1.5)}
+    if(i==10){gA <- gA+geom_line(aes(y=IA10,color=names(color)[10]),size = 1.5);gB <- gB+geom_line(aes(y=I10B,color=names(color)[10]),size = 1.5);gC <- gC+geom_line(aes(y=I10C,color=names(color)[10]),size = 1.5)}
+  }
+  
+  gA <-gA+labs(x = 'jours',y = "Nombre d'entreprises infectées dans portefeuille A",color = "Legend")+ylim(c(0,max(dfA[,2:dim(dfA)[2]])))
+  gB <-gB+labs(x = 'jours',y = "Nombre d'entreprises infectées dans portefeuille B",color = "Legend")+ylim(c(0,max(dfB[,2:dim(dfB)[2]])))
+  gC <-gC+labs(x = 'jours',y = "Nombre d'entreprises infectées dans portefeuille C",color = "Legend")+ylim(c(0,max(dfC[,2:dim(dfC)[2]])))
+  
+  F6 <- grid.arrange(gA,gB,gC,p1)
+  
+}
+
+
+#MAIN
+main <- function(vecSA) #vecSA Nom exact, decomposition si ils vont ensembles
+{
+  #Inputs de base
+  decomposition <- rep(1,length(vecSA))
   #Loading inputs
   path <- dirname(rstudioapi::getSourceEditorContext()$path) 
   va <- fread(paste0(path,"/DatabaseApres/valueadd.csv"))
@@ -309,118 +608,50 @@ main <- function(vecSA,decomposition) #vecSA Nom exact, decomposition si ils von
   
   #Dataframe par Pays
   paysocde <- pays_ocde(ocde,vecSA,vecSAname)
-
+  
   #Matrice 
   matB <- CalculMatriceBeta(va,vecSA,decomposition)
-  params <- NormalizationByAll(va,vecSA,decomposition,vecSAname,globalocde,paysocde,matB,ocde,loigamma)
+  parms <- NormalizationByAll(va,vecSA,decomposition,vecSAname,globalocde,paysocde,matB,ocde,loigamma,beta)
   
+  #Etat initial 
+  y0 <- ignitepf(choix,globalocde,Npop)
   
+  #Model
+  out <- calcul_out(y0,times,parms)
+  
+  #Graph infected
+  graph_infected(choix,out,globalocde,times)  
+  
+  #Calcul TAILLE EPIDEMIE
+  nbr_safe <-Calcul_taille(y0[1:dim(globalocde)[1]],y0,parms[[1]],parms[[2]])  
+  nbr_infect <- Npop - nbr_safe
+  Sains <- unlist(lapply(1:dim(globalocde)[1],function(x){out[1,x+1]+out[1,x+1+dim(globalocde)[1]]}))
+  nbr_infect_SA <- Sains-nbr_safe #Nbr_infectes par SA
+  prop_SA <- nbr_infect_SA/Sains
 
   
+  #Portefeuille
+  pfA <- portA(globalocde,paysocde,pf)[[1]]
+  touchA <- portA(globalocde,paysocde,pf)[[2]]
+  coutA <- portA(globalocde,paysocde,pf)[[3]]
 
+  pfB <- portB(globalocde,paysocde,pf)[[1]]
+  touchB <- portB(globalocde,paysocde,pf)[[2]]
+  coutB <- portB(globalocde,paysocde,pf)[[3]]
   
+  pfC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC)[[1]]
+  touchC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC)[[2]]
+  coutC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC)[[3]]
+  
+  
+  #Graph des portefeuilles
+  graphpf(pfA,touchA,coutA,pfB,touchB,coutB,pfB,touchC,coutC,out,Sains,times)
 
-  
-
-
-
-   
-  
-
-  
-  
-  
-  
-  #4 FONCTIONS POUR ALIMENTER LE PREMIER STATE 
-  # alea_punif <- function(nbrentreprises,touch)
-  # {
-  #   N=4064278
-  #   S1 <- N*nbrentreprises[1]
-  #   S2 <- N*nbrentreprises[2]
-  #   S3 <- N*nbrentreprises[3]
-  #   S4 <- N*nbrentreprises[4]
-  #   S5 <- N*nbrentreprises[5]
-  #   S6 <- N*nbrentreprises[6]
-  #   I1=0;I2=0;I3=0;I4=0;I5=0;I6=0
-  #   rand <- runif(1,0,1)
-  #   if(rand<touch[1]){I1=1;S1=S1-1}else if(rand<touch[2]&rand>touch[1]){I2=1;S2=S2-1}else if(rand<touch[3]&rand>touch[2]){I3=1;S3=S3-1}else if(rand<touch[4]&rand>touch[3]){I4=1;S4=S4-1}else if(rand<touch[5]&rand>touch[4]){I5=1;S5=S5-1}else{I6=1;S6=S6-1}
-  #   y0 <- c(S1 = S1 ,S2= S2,S3 = S3 ,S4= S4 ,S5 = S5,S6= S6,I1=I1,I2 = I2,I3=I3,I4 = I4,I5=I5,I6 = I6,R1 = 0,R2=0 ,R3 = 0, R4=0, R5 = 0, R6=0)
-  #   return(y0)
-  #   
-  # }
-  # ignite_punif<- function(nbrentreprises,touch)
-  # {
-  #   N=4064278
-  #   S1 <- N*nbrentreprises[1]
-  #   S2 <- N*nbrentreprises[2]
-  #   S3 <- N*nbrentreprises[3]
-  #   S4 <- N*nbrentreprises[4]
-  #   S5 <- N*nbrentreprises[5]
-  #   S6 <- N*nbrentreprises[6]
-  #   alpha <- 7*10^-3
-  #   I1=S1*alpha;I2=S2*alpha;I3=S3*alpha;I4=S4*alpha;I5=S5*alpha;I6=S6*alpha
-  #   S1 <- N*nbrentreprises[1]-I1
-  #   S2 <- N*nbrentreprises[2]-I2
-  #   S3 <- N*nbrentreprises[3]-I3
-  #   S4 <- N*nbrentreprises[4]-I4
-  #   S5 <- N*nbrentreprises[5]-I5
-  #   S6 <- N*nbrentreprises[6]-I6
-  #   y0 <- c(S1 = S1 ,S2= S2,S3 = S3 ,S4= S4 ,S5 = S5,S6= S6,I1=I1,I2 = I2,I3=I3,I4 = I4,I5=I5,I6 = I6,R1 = 0,R2=0 ,R3 = 0, R4=0, R5 = 0, R6=0)
-  #   return(y0)
-  #   
-  # }
-  # alea_port_equi <- function(nbrentreprises,touch)
-  # {
-  #   N=4064278
-  #   repart <- runif(6,0.12,0.2)
-  #   repart <- repart/sum(repart)
-  #   S1 <- N*repart[1]
-  #   S2 <- N*repart[2]
-  #   S3 <- N*repart[3]
-  #   S4 <- N*repart[4]
-  #   S5 <- N*repart[5]
-  #   S6 <- N*repart[6]
-  #   I1=0;I2=0;I3=0;I4=0;I5=0;I6=0
-  #   rand <- runif(1,0,1)
-  #   if(rand<touch[1]){I1=1;S1=S1-1}else if(rand<touch[2]&rand>touch[1]){I2=1;S2=S2-1}else if(rand<touch[3]&rand>touch[2]){I3=1;S3=S3-1}else if(rand<touch[4]&rand>touch[3]){I4=1;S4=S4-1}else if(rand<touch[5]&rand>touch[4]){I5=1;S5=S5-1}else{I6=1;S6=S6-1}
-  #   y0 <- c(S1 = S1 ,S2= S2,S3 = S3 ,S4= S4 ,S5 = S5,S6= S6,I1=I1,I2 = I2,I3=I3,I4 = I4,I5=I5,I6 = I6,R1 = 0,R2=0 ,R3 = 0, R4=0, R5 = 0, R6=0)
-  #   return(y0)
-  # }
-  # ignite_port_equi <- function(nbrentreprises,touch)
-  # {
-  #   N=4064278
-  #   repart <- runif(6,0.12,0.2)
-  #   repart <- repart/sum(repart)
-  #   S1 <- N*repart[1]
-  #   S2 <- N*repart[2]
-  #   S3 <- N*repart[3]
-  #   S4 <- N*repart[4]
-  #   S5 <- N*repart[5]
-  #   S6 <- N*repart[6]
-  #   alpha <- 7*10^-3
-  #   I1=S1*alpha;I2=S2*alpha;I3=S3*alpha;I4=S4*alpha;I5=S5*alpha;I6=S6*alpha
-  #   S1 <- N*repart[1]-I1
-  #   S2 <- N*repart[2]-I2
-  #   S3 <- N*repart[3]-I3
-  #   S4 <- N*repart[4]-I4
-  #   S5 <- N*repart[5]-I5
-  #   S6 <- N*v[6]-I6
-  #   y0 <- c(S1 = S1 ,S2= S2,S3 = S3 ,S4= S4 ,S5 = S5,S6= S6,I1=I1,I2 = I2,I3=I3,I4 = I4,I5=I5,I6 = I6,R1 = 0,R2=0 ,R3 = 0, R4=0, R5 = 0, R6=0)
-  #   return(y0)
-  # }
 }
 
 
 
 
 
-df2 <- data.frame(list_sophos_pays,hit,assurance_ransomware,cost)
 
-
-
-
-
-
-
-
-
+  

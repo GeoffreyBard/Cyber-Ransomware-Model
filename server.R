@@ -10,5 +10,12 @@ ocde <- paste0(path_home,"/DatabaseApres/ocde.csv")
 # Loading other scripts neccesary
 source(paste0(path_home,"/dds.R"))
 
-# shinyServer(function(input, output,session) {
-# }
+#INTRO-----------------------------------------------This file allows us tto create the dynamism of the different elements like the dynamism of a button-----
+
+#FUNCTION DYNAMISM
+shinyServer(function(input, output,session) {
+  eventReactive(input$app1, {
+    print("NIQUE TA MERE")}
+    )
+
+})#END OF SERVER

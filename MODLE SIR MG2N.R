@@ -387,66 +387,6 @@ out$R <- out$R1+out$R2+out$R3+out$R4+out$R5+out$R6
 colors <- c("Finances/Assurances" = "red1","IT/technologies/télécoms" = "red4","Service public" = "tomato1","Medias/Loisirs" = "tomato4","Manufacture/Construction" = "violetred","Energie/Gas/Extraction" = "violetred4")
 
 
-if (alea==F)
-{
-  g1<- ggplot(out, aes(x = time)) + 
-    geom_line(aes(y=out$I1,color="Finances/Assurances"),size = 1.5) + 
-    geom_line(aes(y=out$I2,color="IT/technologies/télécoms"),size = 1.5) + 
-    geom_line(aes(y=out$I3,color="Service public"),size = 1.5) +
-    geom_line(aes(y=out$I4,color="Medias/Loisirs"),size = 1.5) + 
-    geom_line(aes(y=out$I5,color="Manufacture/Construction"),size = 1.5) +
-    geom_line(aes(y=out$I6,color="Energie/Gas/Extraction"),size = 1.5) + 
-    labs(x = 'jours',y = "Nombre d'entreprises infectées",color = "Legend")  +
-    ylim(c(0,max(out$I1,out$I2,out$I3,out$I4,out$I5,out$I6)))+
-    xlim(c(0,15))
-
-  
-  g2<- ggplot(out, aes(x = time)) + 
-    geom_line(aes(y=out$I,color="I1"),size = 1.5) + 
-    labs(x = 'jours',y = "Nombre d'entreprises infectées")+
-    xlim(c(0,15))
-  F4 <- grid.arrange(g1,g2)
-  
-}else{
-  if (y0[7]==1)
-  {
-    infect <- "Le premier infecté appartient à Finances/Assurances "
-  }else if(y0[8]==1)
-  {
-    infect <- "Le premier infecté appartient à IT/technologies/télécoms "
-  }else if(y0[9]==1)
-  {
-    infect <- "Le premier infecté appartient à Service public "
-  }else if(y0[10]==1)
-  {
-    infect <- "Le premier infecté appartient à Medias/Loisirs "
-  }else if(y0[11]==1)
-  {
-    infect <- "Le premier infecté appartient à Manufacture/Construction "
-  }else
-  {
-    infect <- "Le premier infecté appartient à Energie/Gas/Extraction "
-  }
-  g3<- ggplot(out, aes(x = time)) + 
-    geom_line(aes(y=out$I1,color="Finances/Assurances"),size = 1.5) + 
-    geom_line(aes(y=out$I2,color="IT/technologies/télécoms"),size = 1.5) + 
-    geom_line(aes(y=out$I3,color="Service public"),size = 1.5) +
-    geom_line(aes(y=out$I4,color="Medias/Loisirs"),size = 1.5) + 
-    geom_line(aes(y=out$I5,color="Manufacture/Construction"),size = 1.5) +
-    geom_line(aes(y=out$I6,color="Energie/Gas/Extraction"),size = 1.5) + 
-    labs(x = 'jours',y = "Nombre d'entreprises infectées",color = "Legend",caption=infect)  +
-    
-    ylim(c(0,max(out$I1,out$I2,out$I3,out$I4,out$I5,out$I6)))+
-    xlim(c(0,15))
-
-  
-  g4<- ggplot(out, aes(x = time)) + 
-    geom_line(aes(y=out$I,color="red"),size = 1.5) + 
-    labs(x = 'jours',y = "Nombre d'entreprises infectées")+
-    xlim(c(0,15))
-  F5 <-grid.arrange(g3,g4)
-  
-}
 
 #FORMULE TAILLE FINALE EPIDEMIE
 Nbr_infectes_SA <- function(y0,MatB,gamma,k,X)
