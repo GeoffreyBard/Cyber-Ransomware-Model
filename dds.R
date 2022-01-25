@@ -393,7 +393,7 @@ Calcul_taille <- function(X,y0,MatB,gamma)
 }
 
 #PORTEFEUILLE REPRESENTATIF DE LA COMPOSITION ACTUELLE
-portA <- function(globalocde,paysocde,pf)
+portA <- function(globalocde,paysocde,pf,prop_SA)
 {
   #CONSTRUCTION DU PF
   pA <- matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
@@ -427,7 +427,7 @@ portA <- function(globalocde,paysocde,pf)
 }
 
 #PORTEFEUILLE ALEATOIRE
-portB <- function(globalocde,paysocde,pf)
+portB <- function(globalocde,paysocde,pf,prop_SA)
 {
   #CONSTRUCTION DU PF
   pB <- matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
@@ -464,11 +464,11 @@ portB <- function(globalocde,paysocde,pf)
 
 #PortefeuilleC Uniquement Français, sur les 2 premières sociétés
 
-portC <- function(globalocde,paysocde,pf,Country_portC,SA_portC)
+portC <- function(globalocde,paysocde,pf,Country_portC,SA_portC,prop_SA)
 {
   #Recuperer name
   nom_sa <- c("Mining and quarrying","Manufacturing","Electricity, gas, water supply, sewerage, waste and remediation services","Construction","Wholesale and retail trade; repair of motor vehicles"
-              ,"Transportation and storage","Accommodation and food service activities","Information and communication","Real estate activities","Other business sector services")
+              ,"Transportation and storage","Accommodation and food services","Information and communication","Real estate activities","Other business sector services")
   
   #CONSTRUCTION DU PF
   pC <- matrix(rep(0,dim(paysocde)[1]*dim(globalocde)[1]), nrow = dim(globalocde)[1], ncol=dim(paysocde)[1], byrow=TRUE)
@@ -582,15 +582,15 @@ graphpf <- function(pfA,touchA,coutA,pfB,touchB,coutB,pfC,touchC,coutC,out,Sains
 
 
 #MAIN
-# vecSA=c("D05T09", "D10T33")
+# vecSA=c("D05T09","D10T33","D35T39","D41T43","D45T47","D49T53","D55T56","D58T63","D68","D69T82")
 # Npop=4064278
-# beta= 1.845e-05
+# beta= 1.845e-02
 # loigamma="exp"
 # times=40
 # choix=1
 # pf=10000
 # Country_portC=c("France")
-# SA_portC=runif(10,1,2)
+#SA_portC=runif(10,1,2)
 application1 <- function(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,SA_portC) #vecSA Nom exact, decomposition si ils vont ensembles
 {
   #Inputs de base
@@ -641,23 +641,23 @@ application1 <- function(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,S
   Sains <- unlist(lapply(1:dim(globalocde)[1],function(x){out[1,x+1]+out[1,x+1+dim(globalocde)[1]]}))
 
   nbr_infect_SA <- Sains-nbr_safe #Nbr_infectes par SA
+  print(nbr_infect_SA)
+  print(Sains)
 
   prop_SA <- nbr_infect_SA/Sains
 
   
   #Portefeuille
-  pfA <- portA(globalocde,paysocde,pf)[[1]]
-  touchA <- portA(globalocde,paysocde,pf)[[2]]
-  coutA <- portA(globalocde,paysocde,pf)[[3]]
+  pfA <- portA(globalocde,paysocde,pf,prop_SA)[[1]]
+  touchA <- portA(globalocde,paysocde,pf,prop_SA)[[2]]
+  coutA <- portA(globalocde,paysocde,pf,prop_SA)[[3]]
 
-  pfB <- portB(globalocde,paysocde,pf)[[1]]
-  touchB <- portB(globalocde,paysocde,pf)[[2]]
-  coutB <- portB(globalocde,paysocde,pf)[[3]]
-  
-  pfC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC)[[1]]
-  touchC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC)[[2]]
-  coutC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC)[[3]]
-  
+  pfB <- portB(globalocde,paysocde,pf,prop_SA)[[1]]
+  touchB <- portB(globalocde,paysocde,pf,prop_SA)[[2]]
+  coutB <- portB(globalocde,paysocde,pf,prop_SA)[[3]]
+  pfC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC,prop_SA)[[1]]
+  touchC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC,prop_SA)[[2]]
+  coutC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC,prop_SA)[[3]]
   
   #Graph des portefeuilles 
   f2 <- graphpf(pfA,touchA,coutA,pfB,touchB,coutB,pfB,touchC,coutC,out,Sains,times)

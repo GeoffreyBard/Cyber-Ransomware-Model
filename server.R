@@ -22,10 +22,10 @@ shinyServer(function(input, output) {
     f1 <- application1(input$vecSA,input$pop,input$beta,input$loigamma,input$times,input$variable,input$pf,Listpays,nsx)
     output$plot1 <- renderPlot({
       grid.arrange(f1[[1]],f1[[2]])
-    })
+    }, height = 850, width = 1500)
     output$plot2 <- renderPlot({
-      f1[[6]]
-    })
+      grid.arrange(f1[[3]],f1[[4]],f1[[5]],f1[[6]])
+    }, height = 850, width = 1500)
     # output$plot3 <- renderPlot({
     #   grid.arrange(f1[[5]],f1[[6]])
     # })

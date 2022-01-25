@@ -23,7 +23,7 @@ lapply(required_packages,library,character.only=T)
 
 # A more complicated app with the flatly theme
 shinyUI(fluidPage(
-    # theme = shinytheme("darkly"),
+    theme = shinytheme("darkly"),
     navbarPage(id = "nav_tab","Applications : Modélisation de la propagation d'un ransomware",
     tabPanel("Multi-groupe SIR sur des portefeuilles",value = "home",
      sidebarLayout(
@@ -39,7 +39,8 @@ shinyUI(fluidPage(
                              "Hébergement et restauration" = "D55T56",
                              "Information et communication" = "D58T63",
                              "Activites immobilières" = "D68",
-                             "Autres services" = "D69T82")),
+                             "Autres services" = "D69T82"),
+                             selected = c("D05T09","D10T33","D35T39","D41T43","D45T47","D49T53","D55T56","D58T63","D68","D69T82")),
         textInput("pop", "Nombre d'entreprises",value = "4064278"),  
         textInput("beta", "Valeur de Beta:",
                      value = 1.845*10^-5),
@@ -77,7 +78,8 @@ shinyUI(fluidPage(
                                                        "France" = "France",
                                                        "Germany" = "Germany",
                                                        "Italy" = "Italy",
-                                                       "Japan" = "Japan"))),
+                                                       "Japan" = "Japan"),
+                                                     selected = c("France","Germany"))),
                                            column(2,checkboxGroupInput("Listpays2", "",
                                                                        c("Netherlands" = "Netherlands",
                                                                          "Poland" = "Poland",
@@ -94,15 +96,15 @@ shinyUI(fluidPage(
                                            column(1,),
                                            column(2,textInput("ns6", "Transport et stockage",value = "0"),
                                                   textInput("ns7", "Hébergement et restauration",value = "0"),  
-                                                  textInput("ns8", "Information et communication",value = "100"),  
-                                                  textInput("ns9", "Activites immobilières",value = "0"),  
-                                                  textInput("ns10", "Autres services",value = "0"))  
+                                                  textInput("ns8", "Information et communication",value = "50"),  
+                                                  textInput("ns9", "Activites immobilières",value = "25"),  
+                                                  textInput("ns10", "Autres services",value = "25"))  
                                            
                                   ),
                      ),
           tabPanel("Graphique infection",
-          plotOutput("plot1", width = "100%")),
-          tabPanel("Graphique Portefeuille",plotOutput("plot2", width = "150%"),plotOutput("plot3", width = "150%"))
+          plotOutput("plot1" )),
+          tabPanel("Graphique Portefeuille",plotOutput("plot2", width = "150%"),plotOutput("plot3"))
         ),width = 10
       )
     )
