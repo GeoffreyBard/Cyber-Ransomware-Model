@@ -4,6 +4,8 @@ library(gtools)
 library(deSolve)
 library(RColorBrewer)
 library(gridExtra)
+library(doParallel)
+library(compiler)
 #Inputs à avoir dans l'appli
 
 
@@ -198,11 +200,13 @@ ignitepf <- function(choix,globalocde,Npop)
 
     repart <- runif(dim(globalocde)[1],1/(dim(globalocde)[1]+1),(1/(dim(globalocde)[1]-1)))
     repart <- repart/sum(repart)
+    touch <- c(0,globalocde$touchNormCum)
+    rand <- runif(1,0,1)
     y0 <- c()
     for(i in 1:dim(globalocde)[1])
     {
       if(touch[i]<rand&rand<touch[i+1]){assign(paste('I', i, sep=''),1)}else{assign(paste('I', i, sep=''),0)}
-      if(get(paste0("I",i))==0){assign(paste('S', i, sep=''),Npop*repart[i])}else{assign(paste('S', i, sep=''),Npop*globalocde$repart[i]-1)}
+      if(get(paste0("I",i))==0){assign(paste('S', i, sep=''),Npop*repart[i])}else{assign(paste('S', i, sep=''),Npop*repart[i]-1)}
       assign(paste('R', i, sep=''), 0)
     }
     for(i in 1:dim(globalocde)[1]){y0 <- c(y0,get(paste0("S",i)))}
@@ -219,7 +223,7 @@ ignitepf <- function(choix,globalocde,Npop)
     alpha <- 7*10^-3
     for(i in 1:dim(globalocde)[1])
     {
-      assign(paste('I', i, sep=''),Npop*repart*alpha)
+      assign(paste('I', i, sep=''),Npop*repart[i]*alpha)
       assign(paste('S', i, sep=''),Npop*globalocde$EntreprisesNorm[i]-get(paste0("I",i)))
       assign(paste('R', i, sep=''), 0)
     }
@@ -333,7 +337,7 @@ graph_infected <- function(choix,out,globalocde,times,y0)
       geom_line(aes(y=I,color="Infectés cumulés"),size = 1.5) + 
       labs(x = 'jours',y = "Nombre d'entreprises infectées")
     
-    return(list(g3,g4))    
+    return(list(g1,g2))    
     #ALEA
   }else{
     
@@ -380,9 +384,9 @@ Nbr_infectes_SA <- function(y0,MatB,gamma,k,X)
   return(X)
 }
 
-Calcul_taille <- function(X,y0,MatB,gamma)
+Calcul_taille <- function(X,y0,MatB,gamma,nbr)
 {
-  for (j in 1:10000)
+  for (j in 1:nbr)
   {
     for (i in 1:dim(MatB)[1])
     {
@@ -518,7 +522,7 @@ portC <- function(globalocde,paysocde,pf,Country_portC,SA_portC,prop_SA)
   
 }
 
-graphpf <- function(pfA,touchA,coutA,pfB,touchB,coutB,pfC,touchC,coutC,out,Sains,times)
+graphpf <- function(pfA,touchA,coutA,pfB,touchB,coutB,pfC,touchC,coutC,out,Sains,times,globalocde)
 {
   pfcolor = c("Portefeuille A" = "red4","Portefeuille B"= "green4","Portefeuille C"= "blue4")
   coutpf <- data.frame(portefeuille = c("Portefeuille A","Portefeuille B","Portefeuille C"),cout=c(sum(coutA),sum(coutB),sum(coutC)))
@@ -569,7 +573,7 @@ graphpf <- function(pfA,touchA,coutA,pfB,touchB,coutB,pfC,touchC,coutC,out,Sains
     if(i==7){gA <- gA+geom_line(aes(y=I7A,color=names(color)[7]),size = 1.5);gB <- gB+geom_line(aes(y=I7B,color=names(color)[7]),size = 1.5);gC <- gC+geom_line(aes(y=I7C,color=names(color)[7]),size = 1.5)}
     if(i==8){gA <- gA+geom_line(aes(y=I8A,color=names(color)[8]),size = 1.5);gB <- gB+geom_line(aes(y=I8B,color=names(color)[8]),size = 1.5);gC <- gC+geom_line(aes(y=I8C,color=names(color)[8]),size = 1.5)}
     if(i==9){gA <- gA+geom_line(aes(y=I9A,color=names(color)[9]),size = 1.5);gB <- gB+geom_line(aes(y=I9B,color=names(color)[9]),size = 1.5);gC <- gC+geom_line(aes(y=I9C,color=names(color)[9]),size = 1.5)}
-    if(i==10){gA <- gA+geom_line(aes(y=IA10,color=names(color)[10]),size = 1.5);gB <- gB+geom_line(aes(y=I10B,color=names(color)[10]),size = 1.5);gC <- gC+geom_line(aes(y=I10C,color=names(color)[10]),size = 1.5)}
+    if(i==10){gA <- gA+geom_line(aes(y=I10A,color=names(color)[10]),size = 1.5);gB <- gB+geom_line(aes(y=I10B,color=names(color)[10]),size = 1.5);gC <- gC+geom_line(aes(y=I10C,color=names(color)[10]),size = 1.5)}
   }
   
   gA <-gA+labs(x = 'jours',y = "Nombre d'entreprises infectées dans portefeuille A",color = "Legend")+ylim(c(0,max(dfA[,2:dim(dfA)[2]])))
@@ -587,11 +591,11 @@ graphpf <- function(pfA,touchA,coutA,pfB,touchB,coutB,pfC,touchC,coutC,out,Sains
 # beta= 1.845e-02
 # loigamma="exp"
 # times=40
-# choix=1
+# choix=3
 # pf=10000
 # Country_portC=c("France")
-#SA_portC=runif(10,1,2)
-application1 <- function(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,SA_portC) #vecSA Nom exact, decomposition si ils vont ensembles
+# SA_portC=runif(10,1,2)
+simulation <- function(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,SA_portC) #vecSA Nom exact, decomposition si ils vont ensembles
 {
   #Inputs de base
   decomposition <- rep(1,length(vecSA))
@@ -625,7 +629,7 @@ application1 <- function(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,S
   parms <- NormalizationByAll(va,vecSA,decomposition,vecSAname,globalocde,paysocde,matB,ocde,loigamma,beta)
   
   #Etat initial 
-  y0 <- ignitepf(choix,globalocde,Npop)
+  try(y0 <- ignitepf(choix,globalocde,Npop),silent=T)
   
   #Model
   out <- calcul_out(y0,times,parms)
@@ -634,16 +638,14 @@ application1 <- function(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,S
   f1 <- graph_infected(choix,out,globalocde,times,y0)  
 
   #Calcul TAILLE EPIDEMIE
-  nbr_safe <-Calcul_taille(y0[1:dim(globalocde)[1]],y0,parms[[1]],parms[[2]])  
+  nbr_safe <-Calcul_taille(y0[1:dim(globalocde)[1]],y0,parms[[1]],parms[[2]],10000)  
 
   nbr_infect <- Npop - nbr_safe
 
-  Sains <- unlist(lapply(1:dim(globalocde)[1],function(x){out[1,x+1]+out[1,x+1+dim(globalocde)[1]]}))
-
+  Sains <- unlist(lapply(1:dim(globalocde)[1],function(x){y0[x]+y0[x+dim(globalocde)[1]]}))
   nbr_infect_SA <- Sains-nbr_safe #Nbr_infectes par SA
-  print(nbr_infect_SA)
-  print(Sains)
 
+  
   prop_SA <- nbr_infect_SA/Sains
 
   
@@ -660,14 +662,118 @@ application1 <- function(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,S
   coutC <- portC(globalocde,paysocde,pf,Country_portC,SA_portC,prop_SA)[[3]]
   
   #Graph des portefeuilles 
-  f2 <- graphpf(pfA,touchA,coutA,pfB,touchB,coutB,pfB,touchC,coutC,out,Sains,times)
+  f2 <- graphpf(pfA,touchA,coutA,pfB,touchB,coutB,pfB,touchC,coutC,out,Sains,times,globalocde)
   return(list(f1[[1]],f1[[2]],f2[[1]],f2[[2]],f2[[3]],f2[[4]]))
 
 }
 
 
 
+calculscr <- function(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,SA_portC)
+{
+  decomposition <- rep(1,length(vecSA))
+  #Loading inputs
+  path <- dirname(rstudioapi::getSourceEditorContext()$path) 
+  va <- fread(paste0(path,"/DatabaseApres/valueadd.csv"))
+  ocde <- fread(paste0(path,"/DatabaseApres/ocde.csv"))
+  
+  Npop <- as.numeric(Npop)
+  beta <- as.numeric(beta)
+  choix <- as.numeric(choix)
+  pf <- as.numeric(pf)
+  SA_portC <- as.numeric(SA_portC)
+  times <- seq(from = 0,to = times)
+  
+  
+  #Name des SA
+  vecSAname <- unlist(lapply(1:length(vecSA),function(x){va$In[which(va$Codein==vecSA[x])[1]]}))
+  
+  #Sophos
+  ocde <- Ajout_sophos_touch_couvert_c(ocde)
+  
+  #Datframe par Secteur 
+  globalocde <- global_ocde_c(ocde,vecSA,vecSAname)
+  
+  #Dataframe par Pays
+  paysocde <- pays_ocde(ocde,vecSA,vecSAname)
+  
+  #Matrice 
+  vecA <- NULL
+  vecB <- NULL
+  vecC <- NULL
+  matB <- CalculMatriceBeta_c(va,vecSA,decomposition)
+  cl <- makeCluster(detectCores()-2)
+  clusterEvalQ(cl = cl, {library(dplyr),library(data.table),library(ggplot2),library(gtools),library(deSolve),library(RColorBrewer),library(gridExtra),library(doParallel),library(compiler)})
+  clusterExport(cl=cl,list("vecA","vecB","vecC",'matB',"NormalizationByAll_c",
+                           'ignitepf_c','va','vecSA',
+                           'decomposition',"vecSAname","globalocde",
+                           "paysocde","ocde",'loigamma', "choix", "Calcul_taille_c","Npop",
+                           "pf","portA_c","portB_c","portC_c","times"),envir = environment())
+  res <- parLapply(cl, 1:length(files), function(i)
+  {
+    
+  
+    print(i)
+    parms <- NormalizationByAll_c(va,vecSA,decomposition,vecSAname,globalocde,paysocde,matB,ocde,loigamma,beta)
+    try(y0 <- ignitepf_c(choix,globalocde,Npop),silent=T)
+    #Model
+    
+    #Calcul TAILLE EPIDEMIE
+    nbr_safe <-Calcul_taille_c(y0[1:dim(globalocde)[1]],y0,parms[[1]],parms[[2]],10000)  
+    
+    nbr_infect <- Npop - nbr_safe
+    
+    Sains <- unlist(lapply(1:dim(globalocde)[1],function(x){y0[x]+y0[x+dim(globalocde)[1]]}))
+    
+    nbr_infect_SA <- Sains-nbr_safe #Nbr_infectes par SA
+    
+    
+    prop_SA <- nbr_infect_SA/Sains
+    
+    
+    #Portefeuille
+    coutA <- portA_c(globalocde,paysocde,pf,prop_SA)[[3]]
+    
+    coutB <- portB_c(globalocde,paysocde,pf,prop_SA)[[3]]
+    
+    coutC <- portC_c(globalocde,paysocde,pf,Country_portC,SA_portC,prop_SA)[[3]]
+    
+    vecA <- c(vecA, sum(coutA)) 
+    vecB <- c(vecB, sum(coutB)) 
+    vecC <- c(vecC, sum(coutC)) 
+  }
+  )
+  stopCluster(cl)
+  registerDoSEQ()
+  print("end of clusters")
+  
+  SCRA <- mean(vecA) - VaR(vecA,p = 0.995)
+  SCRB <- mean(vecB) - VaR(vecB,p = 0.995)
+  SCRC <- mean(vecC) - VaR(vecC,p = 0.995)
+  
+  return(SCRA,SCRB,SRCC)
+}
+
+calculscr_c(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,SA_portC)
 
 
+
+CalculMatriceBeta_c <- cmpfun(CalculMatriceBeta)
+global_ocde_c <- cmpfun(global_ocde)
+pays_ocde_c <- cmpfun(pays_ocde)
+NormalizationByAll_c <- cmpfun(NormalizationByAll)
+Ajout_sophos_touch_couvert_c <- cmpfun(Ajout_sophos_touch_couvert)
+ignitepf_c <- cmpfun(ignitepf)
+sirmg2_c <- cmpfun(sirmg2)
+calcul_out_c <- cmpfun(calcul_out)
+graph_infected_c <- cmpfun(graph_infected)
+Nbr_infectes_SA_c <- cmpfun(Nbr_infectes_SA)
+Calcul_taille_c <- cmpfun(Calcul_taille)
+portA_c <- cmpfun(portA)
+portB_c <- cmpfun(portB)
+portC_c <- cmpfun(portC)
+graphpf_c <- cmpfun(graphpf)
+simulation_c <- cmpfun(simulation)
+calculscr_c <- cmpfun(calculscr)
 
 

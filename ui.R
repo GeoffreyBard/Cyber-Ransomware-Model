@@ -55,7 +55,7 @@ shinyUI(fluidPage(
                       "Une infection (Représentatif)" = "2",
                       "Lot d'embrassement (Aléatoire)" = "3",
                       "Lot d'embrassement (Représentatif) " = "4")),
-      actionButton("app1", "Simulation"),
+      fluidRow(column(6,actionButton("app1", "Simulation")),column(6,actionButton("app2", "Calcul SCR"))),
       width = 2),
       mainPanel(
         tabsetPanel(type = "tabs",

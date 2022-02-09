@@ -19,7 +19,7 @@ shinyServer(function(input, output) {
 
     Listpays <- c(input$Listpays1,input$Listpays2)
     nsx <- c(input$ns1,input$ns2,input$ns3,input$ns4,input$ns5,input$ns6,input$ns7,input$ns8,input$ns9,input$ns10)
-    f1 <- application1(input$vecSA,input$pop,input$beta,input$loigamma,input$times,input$variable,input$pf,Listpays,nsx)
+    f1 <- simulation(input$vecSA,input$pop,input$beta,input$loigamma,input$times,input$variable,input$pf,Listpays,nsx)
     output$plot1 <- renderPlot({
       grid.arrange(f1[[1]],f1[[2]])
     }, height = 850, width = 1500)
