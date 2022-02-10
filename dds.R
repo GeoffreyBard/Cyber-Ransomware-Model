@@ -584,8 +584,8 @@ graphpf <- function(pfA,touchA,coutA,pfB,touchB,coutB,pfC,touchC,coutC,out,Sains
   
 }
 
-
-#MAIN
+# 
+# MAIN
 # vecSA=c("D05T09","D10T33","D35T39","D41T43","D45T47","D49T53","D55T56","D58T63","D68","D69T82")
 # Npop=4064278
 # beta= 1.845e-02
@@ -703,17 +703,14 @@ calculscr <- function(vecSA,Npop,beta,loigamma,times,choix,pf,Country_portC,SA_p
   vecC <- NULL
   matB <- CalculMatriceBeta_c(va,vecSA,decomposition)
   cl <- makeCluster(detectCores()-2)
-  clusterEvalQ(cl = cl, {library(dplyr),library(data.table),library(ggplot2),library(gtools),library(deSolve),library(RColorBrewer),library(gridExtra),library(doParallel),library(compiler)})
+  clusterEvalQ(cl = cl, {c(library(dplyr),library(data.table),library(ggplot2),library(gtools),library(deSolve),library(RColorBrewer),library(gridExtra),library(doParallel),library(compiler))})
   clusterExport(cl=cl,list("vecA","vecB","vecC",'matB',"NormalizationByAll_c",
                            'ignitepf_c','va','vecSA',
                            'decomposition',"vecSAname","globalocde",
                            "paysocde","ocde",'loigamma', "choix", "Calcul_taille_c","Npop",
-                           "pf","portA_c","portB_c","portC_c","times"),envir = environment())
-  res <- parLapply(cl, 1:length(files), function(i)
+                           "pf","portA_c","portB_c","portC_c","times","beta","Nbr_infectes_SA","Nbr_infectes_SA_c","Country_portC","SA_portC"),envir = environment())
+  res <- parLapply(cl, 1:10000, function(i)
   {
-    
-  
-    print(i)
     parms <- NormalizationByAll_c(va,vecSA,decomposition,vecSAname,globalocde,paysocde,matB,ocde,loigamma,beta)
     try(y0 <- ignitepf_c(choix,globalocde,Npop),silent=T)
     #Model
@@ -765,6 +762,7 @@ NormalizationByAll_c <- cmpfun(NormalizationByAll)
 Ajout_sophos_touch_couvert_c <- cmpfun(Ajout_sophos_touch_couvert)
 ignitepf_c <- cmpfun(ignitepf)
 sirmg2_c <- cmpfun(sirmg2)
+
 calcul_out_c <- cmpfun(calcul_out)
 graph_infected_c <- cmpfun(graph_infected)
 Nbr_infectes_SA_c <- cmpfun(Nbr_infectes_SA)
